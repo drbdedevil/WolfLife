@@ -1,0 +1,33 @@
+#include "Sheep.h"
+
+#include "raylib.h"
+#include "rlgl.h"
+
+#include "../Components/Collision.h"
+
+Sheep::Sheep(int x, int y) : AIVehicle(x, y)
+{
+    m_collision.reset(new Collision(this, 2.f));
+
+    maxSpeed = 2.f;
+    maxForce = 0.2f;
+    // bShouldBound = true;
+}
+
+void Sheep::update(float DeltaSeconds)
+{
+    AIVehicle::update(DeltaSeconds);
+}
+
+void Sheep::draw()
+{
+    float angle = atan2f(velocity.y, velocity.x);
+
+    rlPushMatrix();
+    rlTranslatef(position.x, position.y, 0.0f);
+    rlRotatef(angle * RAD2DEG, 0.0f, 0.0f, 1.0f);
+
+    DrawCircle(0, 0, size, WHITE);
+
+    rlPopMatrix();
+}

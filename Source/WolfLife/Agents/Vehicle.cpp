@@ -3,10 +3,13 @@
 #include <algorithm>
 #include "rlgl.h"
 
+#include "../Components/Collision.h"
 #include <iostream>
 
 Vehicle::Vehicle(int x, int y)
 {
+    m_collision.reset();
+
     position = Vector2f(x, y);
 	velocity = Vector2f(0, 0);
 	acceleration = Vector2f(0, 0);
@@ -175,6 +178,21 @@ void Vehicle::boundaries()
     }
 
     delete desired;
+}
+
+std::shared_ptr<Collision> Vehicle::getCollision() const
+{
+    return m_collision;
+}
+
+void Vehicle::die()
+{
+    bIsAlive = false;
+}
+
+bool Vehicle::isAlive() const
+{
+    return bIsAlive;
 }
 
 float Vehicle::map(float value, float in_min, float in_max, float out_min, float out_max)

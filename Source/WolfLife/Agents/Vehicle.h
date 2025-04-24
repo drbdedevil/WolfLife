@@ -2,6 +2,9 @@
 
 #include "raylib.h"
 #include <cmath>
+#include <memory>
+
+class Collision;
 
 struct Vector2f 
 {
@@ -34,11 +37,12 @@ class Vehicle
 {
 public:
 	Vehicle(int x, int y);
+    virtual ~Vehicle() {};
 
-	void update(float DeltaSeconds);
+	virtual void update(float DeltaSeconds);
 	void applyForce(const Vector2& force);
 
-	void draw();
+	virtual void draw();
 
 	// Преследование
 	void seek(const Vector2& target);
@@ -54,10 +58,17 @@ public:
 
     // Ограничение по границам
     void boundaries();
-private:
 
+    std::shared_ptr<Collision> getCollision() const;
+
+    void die();
+    bool isAlive() const;
+protected:
+    std::shared_ptr<Collision> m_collision;
 
     float map(float value, float in_min, float in_max, float out_min, float out_max);
+
+    bool bIsAlive = true;
 public:
     Vector2f position;
     Vector2f velocity;

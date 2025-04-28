@@ -49,6 +49,8 @@ void World::reset()
 		m_dogs[i]->setPath(m_dogPath);
 		m_dogs[i]->setWolf(m_wolf);
 		m_dogs[i]->setDogBehavior(EDogBehavior::EDB_Patrolling);
+		onWolfNoticed.append(std::bind(&Dog::dogShouldWolfChase, m_dogs[i]));
+		onWolfDisappeared.append(std::bind(&Dog::dogShouldReturn, m_dogs[i]));
 	}
 }
 
@@ -59,7 +61,7 @@ void World::doForce()
 	m_wolf->arrive(mousePos);
 	for (std::shared_ptr<Sheep> sheep : m_sheep)
 	{
-		sheep->fleeing({ m_wolf->position.x, m_wolf->position.y });
+		sheep->fleeingBound({ m_wolf->position.x, m_wolf->position.y });
 	}
 	for (std::shared_ptr<Dog> dog : m_dogs)
 	{
@@ -116,10 +118,32 @@ std::shared_ptr<Wolf> World::getWolf() const
 	return m_wolf;
 }
 
+bool World::wolfInSafeZone() const
+{
+	Vector2 wolfPos = { m_wolf->position.x, m_wolf->position.y };
+	if ((wolfPos.x < 107 || wolfPos.x > 1173) || (wolfPos.y < 60 || wolfPos.y > 660))
+	{
+		return true;
+	}
+	return false;
+}
+
 void World::checkVisibility()
 {
 	Vector2 wolfPos = { m_wolf->position.x, m_wolf->position.y };
+
 	// if wolf in safe zone then it invisible
+	if (wolfInSafeZone())
+	{
+		if (!m_wolf->isVisible())
+		{
+			return;
+		}
+
+		m_wolf->setVisibility(false);
+		onWolfDisappeared();
+		return;
+	}
 
 	if (m_wolf->isVisible())
 	{
@@ -136,9 +160,9 @@ void World::checkVisibility()
 		if (dog->getEyeshot()->isWolfInEyeshot(wolfPos, m_wolf->getCollision()->getRadius()))
 		{
 			std::cout << "I SEE YOU!!!" << std::endl;
-			// dog->sawWolf(m_wolf.get());
-			dog->dogShouldWolfChase();
 			m_wolf->setVisibility(true);
+			onWolfNoticed();
+			continue;
 		}
 	}
 }
@@ -154,6 +178,7 @@ void World::checkCollisions()
 		if (CheckCollisionCircles(sheepPos, sheep->getCollision()->getRadius(), wolfPos, m_wolf->getCollision()->getRadius()))
 		{
 			m_wolf->eatSheep(sheep.get());
+			onWolfNoticed();
 		}
 	}
 

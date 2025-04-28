@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include "eventpp/callbacklist.h"
 
 class Dog;
 class Wolf;
@@ -24,6 +25,11 @@ public:
 
 	std::shared_ptr<Wolf> getWolf() const;
 private:
+	eventpp::CallbackList<void()> onWolfNoticed;
+	eventpp::CallbackList<void()> onWolfDisappeared;
+
+	bool wolfInSafeZone() const;
+
 	void checkVisibility();
 	void checkCollisions();
 	void checkAliveVehicle();

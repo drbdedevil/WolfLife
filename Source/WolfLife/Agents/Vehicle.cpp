@@ -140,44 +140,45 @@ void Vehicle::seekOrArrive(const Vector2& target)
     }
 }
 
-void Vehicle::boundaries()
+void Vehicle::fleeingBound(const Vector2& target)
 {
-    Vector2f* desired = nullptr;
-    if (position.x < bounds.x)
+    fleeing(target);
+    
+    const float borderThreshold = 20.f; // насколько близко к границе начинаем реагировать
+    const float worldLeft = 107.f;
+    const float worldRight = 1173.f;
+    const float worldTop = 60.f;
+    const float worldBottom = 660.f;
+
+    Vector2f borderSteer(0.f, 0.f);
+
+    if (position.x < worldLeft + borderThreshold)
     {
-        desired = new Vector2f(maxSpeed, velocity.y);
+        borderSteer.x += randomFloat(500.f, 1000.0f); // толкаем направо
+        borderSteer.y += randomFloat(-500.f, 500.0f);
     }
-    else if (position.x > 1280 - bounds.x)
+    else if (position.x > worldRight - borderThreshold)
     {
-        desired = new Vector2f(-maxSpeed, velocity.y);
-    }
-
-    if (position.y < bounds.y)
-    {
-        desired = new Vector2f(velocity.x, maxSpeed);
-    }
-    else if (position.y > 720 - bounds.y)
-    {
-        desired = new Vector2f(velocity.x, -maxSpeed);
-    }
-
-    if (desired)
-    {
-        *desired = desired->Normalized();
-        desired->x = desired->x * maxSpeed;
-        desired->y = desired->y * maxSpeed;
-
-        Vector2f steer = *desired - velocity;
-
-        if (steer.Length() > maxForce)
-        {
-            steer = steer.Normalized() * maxForce;
-        }
-
-        applyForce({ steer.x, steer.y });
+        borderSteer.x += randomFloat(-1000.0f, -500.f); // толкаем налево
+        borderSteer.y += randomFloat(-500.f, 500.0f);
     }
 
-    delete desired;
+    if (position.y < worldTop + borderThreshold)
+    {
+        borderSteer.y += randomFloat(500.f, 1000.0f); // толкаем вниз
+        borderSteer.x += randomFloat(-500.0f, 500.f);
+    }
+    else if (position.y > worldBottom - borderThreshold)
+    {
+        borderSteer.y += randomFloat(-1000.0f, -500.f); // толкаем вверх
+        borderSteer.x += randomFloat(-500.0f, 500.f);
+    }
+
+    if (borderSteer.Length() > 0.0f)
+    {
+        borderSteer = borderSteer.Normalized() * 10.f;
+        applyForce(Vector2(borderSteer.x, borderSteer.y));
+    }
 }
 
 std::shared_ptr<Collision> Vehicle::getCollision() const
@@ -222,4 +223,9 @@ Vector2f Vehicle::getNormalPoint(Vector2f future, Vector2f start, Vector2f end)
 float Vehicle::Vector2Distance(const Vector2f& a, const Vector2f& b)
 {
     return (b - a).Length();
+}
+
+float Vehicle::randomFloat(float min, float max)
+{
+    return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (max - min));
 }

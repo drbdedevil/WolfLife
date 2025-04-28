@@ -10,6 +10,8 @@
 
 Dog::Dog(int x, int y) : AIVehicle(x, y)
 {
+    m_startPos = Vector2(x, y);
+
     m_collision.reset(new Collision(this, 10.f));
     m_eyeshot.reset(new Eyeshot(this, 200.f, 40.f, 250.f));
 
@@ -54,6 +56,15 @@ void Dog::execute()
     if (m_dogBehavior == EDB_Patrolling)
     {
         followCurve(m_path.lock());
+    }
+    else if (m_dogBehavior == EDB_ReturnToPatrol)
+    {
+        arrive({ m_startPos.x, m_startPos.y });
+
+        if (CheckCollisionPointCircle({ position.x, position.y }, m_startPos, 20.f))
+        {
+            dogShouldPatrol();
+        }
     }
     else if (m_dogBehavior == EDB_WolfChase)
     {
@@ -154,6 +165,22 @@ void Dog::setWolf(std::shared_ptr<Wolf>& wolf)
 void Dog::setDogBehavior(EDogBehavior newBehavior)
 {
     m_dogBehavior = newBehavior;
+}
+
+void Dog::dogShouldPatrol()
+{
+    m_dogBehavior = EDB_Patrolling;
+
+    maxSpeed = 1.2f;
+    maxForce = 0.2f;
+}
+
+void Dog::dogShouldReturn()
+{
+    m_dogBehavior = EDB_ReturnToPatrol;
+
+    maxSpeed = 5.2f;
+    maxForce = 0.2f;
 }
 
 void Dog::dogShouldWolfChase()

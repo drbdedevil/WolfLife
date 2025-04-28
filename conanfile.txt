@@ -1,5 +1,6 @@
 [requires]
 raylib/5.5
+eventpp/0.1.3
 
 [generators]
 CMakeDeps

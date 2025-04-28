@@ -21,6 +21,8 @@ void Sheep::update(float DeltaSeconds)
 
 void Sheep::draw()
 {
+    DrawLineEx(Vector2(position.x, position.y), Vector2(position.x + velocity.x * 5.f, position.y + velocity.y * 5.f), 2.f, WHITE);
+
     float angle = atan2f(velocity.y, velocity.x);
 
     rlPushMatrix();
@@ -30,4 +32,8 @@ void Sheep::draw()
     DrawCircle(0, 0, size, WHITE);
 
     rlPopMatrix();
+}
+
+void Sheep::execute()
+{
 }

@@ -9,7 +9,10 @@ set(SOURCE_FILES Application.cpp Application.h
                  Agents/AIVehicle.cpp Agents/AIVehicle.h
                  Agents/Dog.cpp Agents/Dog.h
                  Agents/Sheep.cpp Agents/Sheep.h
+                 Components/Component.cpp Components/Component.h
                  Components/Collision.cpp Components/Collision.h
+                 Components/Eyeshot.cpp Components/Eyeshot.h
+                 Components/Path.cpp Components/Path.h
                  )
 add_library(${PROJECT_NAME}Lib STATIC ${SOURCE_FILES})
 

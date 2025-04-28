@@ -63,10 +63,14 @@ public:
 
     void die();
     bool isAlive() const;
+
+    float getAngle() const;
 protected:
     std::shared_ptr<Collision> m_collision;
 
     float map(float value, float in_min, float in_max, float out_min, float out_max);
+    Vector2f getNormalPoint(Vector2f future, Vector2f start, Vector2f end);
+    float Vector2Distance(const Vector2f& a, const Vector2f& b);
 
     bool bIsAlive = true;
 public:

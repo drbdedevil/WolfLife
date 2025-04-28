@@ -5,6 +5,8 @@
 #include "Agents/Sheep.h"
 #include "raylib.h"
 #include "Components/Collision.h"
+#include "Components/Eyeshot.h"
+#include "Components/Path.h"
 
 #include <iostream>
 
@@ -27,10 +29,26 @@ void World::reset()
 	{
 		m_sheep[i].reset(new Sheep(250, 250 + 10 * i));
 	}
+
+	const float x = 150.f;
+	const float y = 100.f;
+	m_dogPath.reset(new Path(20.f/*, Vector2(x, y + 30.f), Vector2(975.f + x, y)*/));
+	m_dogPath->addPoint(Vector2(75.f + x, y));
+	m_dogPath->addPoint(Vector2(900.f + x, y));
+	m_dogPath->addPoint(Vector2(975.f + x, 75.f + y));
+	m_dogPath->addPoint(Vector2(975.f + x, 425.f + y));
+	m_dogPath->addPoint(Vector2(900.f + x, 500.f + y));
+	m_dogPath->addPoint(Vector2(75.f + x, 500.f + y));
+	m_dogPath->addPoint(Vector2(x, 425.f + y));
+	m_dogPath->addPoint(Vector2(x, 75.f + y));
+
 	m_dogs.resize(m_countOfDogs);
 	for (size_t i = 0; i < m_countOfDogs; ++i)
 	{
-		m_dogs[i].reset(new Dog(150, 150 + 10 * i));
+		m_dogs[i].reset(new Dog(x + 975.f * i, y + 500.f * i));
+		m_dogs[i]->setPath(m_dogPath);
+		m_dogs[i]->setWolf(m_wolf);
+		m_dogs[i]->setDogBehavior(EDogBehavior::EDB_Patrolling);
 	}
 }
 
@@ -45,12 +63,15 @@ void World::doForce()
 	}
 	for (std::shared_ptr<Dog> dog : m_dogs)
 	{
-		dog->seek({ m_wolf->position.x, m_wolf->position.y });
+		// dog->seek({ m_wolf->position.x, m_wolf->position.y });
+		// dog->followCurve(m_dogPath);
+		dog->execute();
 	}
 }
 
 void World::update(float DeltaSeconds)
 {
+	checkVisibility();
 	checkCollisions();
 	checkAliveVehicle();
 
@@ -72,6 +93,8 @@ void World::draw()
 	DrawRectangle(107, 60, 1066, 600, BLACK);
 	DrawRectangleRoundedLinesEx({107, 60, 1066, 600}, 0.0, 2, 2.f, BROWN);
 
+	// m_dogPath->draw();
+
 	m_wolf->draw();
 	for (std::shared_ptr<Sheep> sheep : m_sheep)
 	{
@@ -91,6 +114,33 @@ bool World::isGameOver() const
 std::shared_ptr<Wolf> World::getWolf() const
 {
 	return m_wolf;
+}
+
+void World::checkVisibility()
+{
+	Vector2 wolfPos = { m_wolf->position.x, m_wolf->position.y };
+	// if wolf in safe zone then it invisible
+
+	if (m_wolf->isVisible())
+	{
+		return;
+	}
+
+	// Check if sheep see wolf
+
+	// Check if dogs see wolf
+	for (std::shared_ptr<Dog> dog : m_dogs)
+	{
+		Vector2 dogPos = { dog->position.x, dog->position.y };
+
+		if (dog->getEyeshot()->isWolfInEyeshot(wolfPos, m_wolf->getCollision()->getRadius()))
+		{
+			std::cout << "I SEE YOU!!!" << std::endl;
+			// dog->sawWolf(m_wolf.get());
+			dog->dogShouldWolfChase();
+			m_wolf->setVisibility(true);
+		}
+	}
 }
 
 void World::checkCollisions()

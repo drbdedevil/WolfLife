@@ -1,17 +1,19 @@
 #pragma once
 
+#include "Component.h"
+
 class Vehicle;
 
-class Collision
+class Collision : public IComponent
 {
 public:
 	Collision(Vehicle* owner, float radius);
 
+	virtual void draw() override;
+
 	bool checkCollision();
 
-	Vehicle* getOwner() const;
 	float getRadius() const;
 private:
-	Vehicle* m_owner;
 	float m_radius;
 };

@@ -15,6 +15,10 @@ public:
 	int8_t getHealth() const;
 
 	void eatSheep(Sheep* sheep);
+
+	void setVisibility(bool Value);
+	bool isVisible() const;
 private:
 	int8_t m_health;
+	bool bIsVisible = false;
 };

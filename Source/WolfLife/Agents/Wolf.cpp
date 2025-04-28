@@ -20,6 +20,8 @@ void Wolf::update(float DeltaSeconds)
 
 void Wolf::draw()
 {
+    DrawLineEx(Vector2(position.x, position.y), GetMousePosition(), 2.f, WHITE);
+
     float angle = atan2f(velocity.y, velocity.x);
 
     rlPushMatrix();
@@ -44,4 +46,14 @@ int8_t Wolf::getHealth() const
 void Wolf::eatSheep(Sheep* sheep)
 {
     sheep->die();
+}
+
+void Wolf::setVisibility(bool Value)
+{
+    bIsVisible = Value;
+}
+
+bool Wolf::isVisible() const
+{
+    return bIsVisible;
 }

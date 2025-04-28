@@ -195,8 +195,31 @@ bool Vehicle::isAlive() const
     return bIsAlive;
 }
 
+float Vehicle::getAngle() const
+{
+    return atan2f(velocity.y, velocity.x);
+}
+
 float Vehicle::map(float value, float in_min, float in_max, float out_min, float out_max)
 {
     value = std::fmax(in_min, std::fmin(value, in_max));
     return out_min + (out_max - out_min) * ((value - in_min) / (in_max - in_min));
+}
+
+Vector2f Vehicle::getNormalPoint(Vector2f future, Vector2f start, Vector2f end)
+{
+    Vector2f ap = future - start;
+    Vector2f ab = (end - start).Normalized();
+
+    float dot = ap.x * ab.x + ap.y * ab.y;
+    Vector2f projection = ab * dot;
+
+    Vector2f normalPoint = start + projection;
+
+    return normalPoint;
+}
+
+float Vehicle::Vector2Distance(const Vector2f& a, const Vector2f& b)
+{
+    return (b - a).Length();
 }

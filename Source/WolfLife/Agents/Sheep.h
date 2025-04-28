@@ -9,6 +9,8 @@ public:
 
 	virtual void update(float DeltaSeconds) override;
 	virtual void draw() override;
+
+	virtual void execute() override;
 private:
 
 };

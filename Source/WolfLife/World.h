@@ -5,6 +5,7 @@
 
 class Dog;
 class Wolf;
+class Path;
 class Sheep;
 
 class World
@@ -23,6 +24,7 @@ public:
 
 	std::shared_ptr<Wolf> getWolf() const;
 private:
+	void checkVisibility();
 	void checkCollisions();
 	void checkAliveVehicle();
 
@@ -32,4 +34,6 @@ private:
 	std::shared_ptr<Wolf> m_wolf;
 	std::vector<std::shared_ptr<Sheep>> m_sheep;
 	std::vector<std::shared_ptr<Dog>> m_dogs;
+
+	std::shared_ptr<Path> m_dogPath;
 };

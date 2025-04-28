@@ -58,6 +58,7 @@ public:
 
     // Ограничение по границам и убегание
     void fleeingBound(const Vector2& target);
+    void fleeingBoundIntelligent(const Vector2& target);
 
     std::shared_ptr<Collision> getCollision() const;
 

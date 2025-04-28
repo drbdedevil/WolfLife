@@ -9,8 +9,8 @@ Sheep::Sheep(int x, int y) : AIVehicle(x, y)
 {
     m_collision.reset(new Collision(this, 2.f));
 
-    maxSpeed = 2.f;
-    maxForce = 0.2f;
+    maxSpeed = 2.5f;
+    maxForce = 4.2f;
     // bShouldBound = true;
 }
 

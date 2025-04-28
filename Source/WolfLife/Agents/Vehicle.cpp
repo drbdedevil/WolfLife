@@ -81,7 +81,7 @@ void Vehicle::seek(const Vector2& target)
         steer = steer.Normalized() * maxForce;
     }
 
-    applyForce({steer.x, steer.y });
+    applyForce({ steer.x, steer.y });
 }
 
 void Vehicle::fleeing(const Vector2& target)
@@ -179,6 +179,69 @@ void Vehicle::fleeingBound(const Vector2& target)
         borderSteer = borderSteer.Normalized() * 10.f;
         applyForce(Vector2(borderSteer.x, borderSteer.y));
     }
+}
+
+void Vehicle::fleeingBoundIntelligent(const Vector2& target)
+{
+    const float borderThreshold = 80.f;
+    const float worldLeft = 107.f;
+    const float worldRight = 1173.f;
+    const float worldTop = 60.f;
+    const float worldBottom = 660.f;
+
+    // Параметры пружины
+    const float springStrength = 10.0f; // Чем больше, тем сильнее отталкивает
+    const float dampingStrength = 0.7f; // Уменьшает силу, чтобы не трясло слишком сильно
+
+    Vector2f avoidForce(0.f, 0.f);
+
+    // Проверяем приближение к каждому краю
+    if (position.x < worldLeft + borderThreshold)
+    {
+        float distance = (position.x - worldLeft);
+        avoidForce.x += (borderThreshold - distance) / borderThreshold;
+    }
+    else if (position.x > worldRight - borderThreshold)
+    {
+        float distance = (worldRight - position.x);
+        avoidForce.x -= (borderThreshold - distance) / borderThreshold;
+    }
+
+    if (position.y < worldTop + borderThreshold)
+    {
+        float distance = (position.y - worldTop);
+        avoidForce.y += (borderThreshold - distance) / borderThreshold;
+    }
+    else if (position.y > worldBottom - borderThreshold)
+    {
+        float distance = (worldBottom - position.y);
+        avoidForce.y -= (borderThreshold - distance) / borderThreshold;
+    }
+
+    // Применяем пружинную силу
+    if (avoidForce.Length() > 0.0f)
+    {
+        avoidForce = avoidForce.Normalized() * (avoidForce.Length() * springStrength);
+
+        // Добавляем демпфирование — уменьшаем эффект если скорость в правильную сторону
+        Vector2f damping = velocity * dampingStrength;
+        Vector2f springForce = avoidForce - damping;
+
+        if (springForce.Length() > maxForce)
+            springForce = springForce.Normalized() * maxForce;
+
+        applyForce(Vector2(springForce.x, springForce.y));
+    }
+
+    // Основное убегание от цели
+    Vector2f desiredFlee = { position.x - target.x, position.y - target.y };
+    desiredFlee = desiredFlee.Normalized() * maxSpeed;
+
+    Vector2f fleeForce = desiredFlee - velocity;
+    if (fleeForce.Length() > maxForce)
+        fleeForce = fleeForce.Normalized() * maxForce;
+
+    applyForce(Vector2(fleeForce.x, fleeForce.y));
 }
 
 std::shared_ptr<Collision> Vehicle::getCollision() const

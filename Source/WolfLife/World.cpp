@@ -61,7 +61,7 @@ void World::doForce()
 	m_wolf->arrive(mousePos);
 	for (std::shared_ptr<Sheep> sheep : m_sheep)
 	{
-		sheep->fleeingBound({ m_wolf->position.x, m_wolf->position.y });
+		sheep->fleeingBoundIntelligent({ m_wolf->position.x, m_wolf->position.y });
 	}
 	for (std::shared_ptr<Dog> dog : m_dogs)
 	{
@@ -178,6 +178,7 @@ void World::checkCollisions()
 		if (CheckCollisionCircles(sheepPos, sheep->getCollision()->getRadius(), wolfPos, m_wolf->getCollision()->getRadius()))
 		{
 			m_wolf->eatSheep(sheep.get());
+			m_wolf->setVisibility(true);
 			onWolfNoticed();
 		}
 	}

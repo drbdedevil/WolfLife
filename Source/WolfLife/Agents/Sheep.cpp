@@ -3,11 +3,16 @@
 #include "raylib.h"
 #include "rlgl.h"
 
+#include "Wolf.h"
+#include "../Components/Eyeshot.h"
 #include "../Components/Collision.h"
 
 Sheep::Sheep(int x, int y) : AIVehicle(x, y)
 {
+    m_startPos = Vector2(x, y);
+
     m_collision.reset(new Collision(this, 2.f));
+    m_eyeshot.reset(new Eyeshot(this, 50.f, 10.f, 100.f));
 
     maxSpeed = 2.5f;
     maxForce = 4.2f;
@@ -29,6 +34,8 @@ void Sheep::draw()
     rlTranslatef(position.x, position.y, 0.0f);
     rlRotatef(angle * RAD2DEG, 0.0f, 0.0f, 1.0f);
 
+    m_eyeshot->draw();
+
     DrawCircle(0, 0, size, WHITE);
 
     rlPopMatrix();
@@ -36,4 +43,46 @@ void Sheep::draw()
 
 void Sheep::execute()
 {
+    if (m_sheepBehavior == ESB_Pasture)
+    {
+
+    }
+    else if (m_sheepBehavior == ESB_ReturnToPasture)
+    {
+        arrive({ m_startPos.x, m_startPos.y });
+
+        if (CheckCollisionPointCircle({ position.x, position.y }, m_startPos, 20.f))
+        {
+            sheepShouldPasture();
+        }
+    }
+    else if (m_sheepBehavior == ESB_RunningAway)
+    {
+        fleeingBoundIntelligent({ m_wolf->position.x, m_wolf->position.y });
+    }
+}
+
+void Sheep::setWolf(std::shared_ptr<Wolf>& wolf)
+{
+    m_wolf = wolf.get();
+}
+
+void Sheep::setSheepBehavior(ESheepBehavior newBehavior)
+{
+    m_sheepBehavior = newBehavior;
+}
+
+void Sheep::sheepShouldPasture()
+{
+    m_sheepBehavior = ESB_Pasture;
+}
+
+void Sheep::sheepShouldReturnToPasture()
+{
+    m_sheepBehavior = ESB_ReturnToPasture;
+}
+
+void Sheep::sheepShouldRunningAway()
+{
+    m_sheepBehavior = ESB_RunningAway;
 }

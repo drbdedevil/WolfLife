@@ -19,6 +19,6 @@ public:
 	std::shared_ptr<Eyeshot> getEyeshot() const;
 protected:
 	std::shared_ptr<Eyeshot> m_eyeshot;
-
+	Vector2 m_startPos;
 private:
 };

@@ -28,6 +28,9 @@ private:
 	eventpp::CallbackList<void()> onWolfNoticed;
 	eventpp::CallbackList<void()> onWolfDisappeared;
 
+	void generateSheepVehicles();
+	void generateDogVehicles();
+
 	bool wolfInSafeZone() const;
 
 	void checkVisibility();

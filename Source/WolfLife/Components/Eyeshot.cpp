@@ -13,6 +13,7 @@ Eyeshot::Eyeshot(Vehicle* owner, float length, float widthFront, float widthBack
 
 void Eyeshot::draw()
 {
+    // return;
 	std::vector<Vector2> points = 
 	{
 		m_bottomLeft, m_topLeft, m_bottomRight, m_topRight

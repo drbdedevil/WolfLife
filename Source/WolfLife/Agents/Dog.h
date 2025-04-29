@@ -41,8 +41,6 @@ public:
 	void dogShouldReturn();
 	void dogShouldWolfChase();
 private:
-	Vector2 m_startPos;
-
 	std::weak_ptr<Path> m_path;
 	Wolf* m_wolf;
 	EDogBehavior m_dogBehavior;

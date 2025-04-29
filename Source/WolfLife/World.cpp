@@ -22,36 +22,13 @@ World::~World()
 
 void World::reset()
 {
+	onWolfNoticed = eventpp::CallbackList<void()>();
+	onWolfDisappeared = eventpp::CallbackList<void()>();
+
 	m_wolf.reset(new Wolf(50, 50, 3));
 
-	m_sheep.resize(m_countOfSheep);
-	for (size_t i = 0; i < m_countOfSheep; ++i)
-	{
-		m_sheep[i].reset(new Sheep(250, 250 + 10 * i));
-	}
-
-	const float x = 150.f;
-	const float y = 100.f;
-	m_dogPath.reset(new Path(20.f/*, Vector2(x, y + 30.f), Vector2(975.f + x, y)*/));
-	m_dogPath->addPoint(Vector2(75.f + x, y));
-	m_dogPath->addPoint(Vector2(900.f + x, y));
-	m_dogPath->addPoint(Vector2(975.f + x, 75.f + y));
-	m_dogPath->addPoint(Vector2(975.f + x, 425.f + y));
-	m_dogPath->addPoint(Vector2(900.f + x, 500.f + y));
-	m_dogPath->addPoint(Vector2(75.f + x, 500.f + y));
-	m_dogPath->addPoint(Vector2(x, 425.f + y));
-	m_dogPath->addPoint(Vector2(x, 75.f + y));
-
-	m_dogs.resize(m_countOfDogs);
-	for (size_t i = 0; i < m_countOfDogs; ++i)
-	{
-		m_dogs[i].reset(new Dog(x + 975.f * i, y + 500.f * i));
-		m_dogs[i]->setPath(m_dogPath);
-		m_dogs[i]->setWolf(m_wolf);
-		m_dogs[i]->setDogBehavior(EDogBehavior::EDB_Patrolling);
-		onWolfNoticed.append(std::bind(&Dog::dogShouldWolfChase, m_dogs[i]));
-		onWolfDisappeared.append(std::bind(&Dog::dogShouldReturn, m_dogs[i]));
-	}
+	generateSheepVehicles();
+	generateDogVehicles();
 }
 
 void World::doForce()
@@ -61,12 +38,10 @@ void World::doForce()
 	m_wolf->arrive(mousePos);
 	for (std::shared_ptr<Sheep> sheep : m_sheep)
 	{
-		sheep->fleeingBoundIntelligent({ m_wolf->position.x, m_wolf->position.y });
+		sheep->execute();
 	}
 	for (std::shared_ptr<Dog> dog : m_dogs)
 	{
-		// dog->seek({ m_wolf->position.x, m_wolf->position.y });
-		// dog->followCurve(m_dogPath);
 		dog->execute();
 	}
 }
@@ -118,6 +93,53 @@ std::shared_ptr<Wolf> World::getWolf() const
 	return m_wolf;
 }
 
+void World::generateSheepVehicles()
+{
+	m_sheep.resize(m_countOfSheep);
+	size_t column = 0;
+	size_t line = 0;
+	for (size_t i = 0; i < m_countOfSheep; ++i)
+	{
+		if (i % 10 == 0)
+		{
+			line = 0;
+			++column;
+		}
+
+		m_sheep[i].reset(new Sheep(175 + 40 * column, 175 + 40 * line++));
+		m_sheep[i]->setWolf(m_wolf);
+		m_sheep[i]->setSheepBehavior(ESheepBehavior::ESB_Pasture);
+		onWolfNoticed.append(std::bind(&Sheep::sheepShouldRunningAway, m_sheep[i]));
+		onWolfDisappeared.append(std::bind(&Sheep::sheepShouldReturnToPasture, m_sheep[i]));
+	}
+}
+
+void World::generateDogVehicles()
+{
+	const float x = 150.f;
+	const float y = 100.f;
+	m_dogPath.reset(new Path(20.f/*, Vector2(x, y + 30.f), Vector2(975.f + x, y)*/));
+	m_dogPath->addPoint(Vector2(75.f + x, y));
+	m_dogPath->addPoint(Vector2(900.f + x, y));
+	m_dogPath->addPoint(Vector2(975.f + x, 75.f + y));
+	m_dogPath->addPoint(Vector2(975.f + x, 425.f + y));
+	m_dogPath->addPoint(Vector2(900.f + x, 500.f + y));
+	m_dogPath->addPoint(Vector2(75.f + x, 500.f + y));
+	m_dogPath->addPoint(Vector2(x, 425.f + y));
+	m_dogPath->addPoint(Vector2(x, 75.f + y));
+
+	m_dogs.resize(m_countOfDogs);
+	for (size_t i = 0; i < m_countOfDogs; ++i)
+	{
+		m_dogs[i].reset(new Dog(x + 975.f * i, y + 500.f * i));
+		m_dogs[i]->setPath(m_dogPath);
+		m_dogs[i]->setWolf(m_wolf);
+		m_dogs[i]->setDogBehavior(EDogBehavior::EDB_Patrolling);
+		onWolfNoticed.append(std::bind(&Dog::dogShouldWolfChase, m_dogs[i]));
+		onWolfDisappeared.append(std::bind(&Dog::dogShouldReturn, m_dogs[i]));
+	}
+}
+
 bool World::wolfInSafeZone() const
 {
 	Vector2 wolfPos = { m_wolf->position.x, m_wolf->position.y };
@@ -151,6 +173,17 @@ void World::checkVisibility()
 	}
 
 	// Check if sheep see wolf
+	for (std::shared_ptr<Sheep> sheep : m_sheep)
+	{
+		Vector2 sheepPos = { sheep->position.x, sheep->position.y };
+
+		if (sheep->getEyeshot()->isWolfInEyeshot(wolfPos, m_wolf->getCollision()->getRadius()))
+		{
+			m_wolf->setVisibility(true);
+			onWolfNoticed();
+			return;
+		}
+	}
 
 	// Check if dogs see wolf
 	for (std::shared_ptr<Dog> dog : m_dogs)
@@ -159,10 +192,10 @@ void World::checkVisibility()
 
 		if (dog->getEyeshot()->isWolfInEyeshot(wolfPos, m_wolf->getCollision()->getRadius()))
 		{
-			std::cout << "I SEE YOU!!!" << std::endl;
+			// std::cout << "I SEE YOU!!!" << std::endl;
 			m_wolf->setVisibility(true);
 			onWolfNoticed();
-			continue;
+			return;
 		}
 	}
 }

@@ -42,7 +42,7 @@ void Dog::draw()
     rlRotatef(angle * RAD2DEG, 0.0f, 0.0f, 1.0f);
 
     m_eyeshot->draw();
-    m_collision->draw();
+    // m_collision->draw();
 
     float width = size * 2.5f;
     float height = size * 2.5f;

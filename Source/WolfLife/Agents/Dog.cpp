@@ -46,7 +46,7 @@ void Dog::draw()
 
     float width = size * 2.5f;
     float height = size * 2.5f;
-    DrawRectangle(-width / 2, -height / 2, width, height, GRAY);
+    DrawRectangle(-width / 2, -height / 2, width, height, RED);
 
     rlPopMatrix();
 }
@@ -74,7 +74,7 @@ void Dog::execute()
 
 void Dog::eatWolf(Wolf* wolf)
 {
-    wolf->die();
+    wolf->tear();
 }
 
 void Dog::follow(const std::shared_ptr<Path>& path)
@@ -187,6 +187,6 @@ void Dog::dogShouldWolfChase()
 {
     m_dogBehavior = EDB_WolfChase;
 
-    maxSpeed = 8.2f;
-    maxForce = 0.2f;
+    maxSpeed = 8.8f;
+    maxForce = 0.5f;
 }

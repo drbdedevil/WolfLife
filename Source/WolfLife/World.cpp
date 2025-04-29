@@ -8,6 +8,7 @@
 #include "Components/Eyeshot.h"
 #include "Components/Path.h"
 
+#include <algorithm>
 #include <iostream>
 
 World::World(int countOfSheep, int countOfDogs) : m_countOfSheep(countOfSheep), m_countOfDogs(countOfDogs)
@@ -22,13 +23,14 @@ World::~World()
 
 void World::reset()
 {
-	onWolfNoticed = eventpp::CallbackList<void()>();
-	onWolfDisappeared = eventpp::CallbackList<void()>();
+	// onWolfNoticed = eventpp::CallbackList<void()>();
+	// onWolfDisappeared = eventpp::CallbackList<void()>();
 
-	m_wolf.reset(new Wolf(50, 50, 3));
+	m_wolf.reset(new Wolf(50, 50, 12));
 
 	generateSheepVehicles();
 	generateDogVehicles();
+	vehiclesAccounting();
 }
 
 void World::doForce()
@@ -53,14 +55,19 @@ void World::update(float DeltaSeconds)
 	checkAliveVehicle();
 
 	m_wolf->update(DeltaSeconds);
-	for (std::shared_ptr<Sheep> sheep : m_sheep)
+	for (Vehicle* vehicle : m_allVehicles)
+	{
+		vehicle->separate(m_allVehicles);
+		vehicle->update(DeltaSeconds);
+	}
+	/*for (std::shared_ptr<Sheep> sheep : m_sheep)
 	{
 		sheep->update(DeltaSeconds);
 	}
 	for (std::shared_ptr<Dog> dog : m_dogs)
 	{
 		dog->update(DeltaSeconds);
-	}
+	}*/
 }
 
 void World::draw()
@@ -83,14 +90,29 @@ void World::draw()
 	}
 }
 
+void World::gameOver()
+{
+	m_wolf->die();
+}
+
 bool World::isGameOver() const
 {
-	return m_wolf->getHealth() == 0 || m_countOfSheep == 0;
+	return !m_wolf->isAlive() || m_sheep.size() == 0;
 }
 
 std::shared_ptr<Wolf> World::getWolf() const
 {
 	return m_wolf;
+}
+
+int World::getCountOfSheep() const
+{
+	return m_sheep.size();
+}
+
+int World::getWolfHealth() const
+{
+	return m_wolf->getHealth();
 }
 
 void World::generateSheepVehicles()
@@ -110,7 +132,7 @@ void World::generateSheepVehicles()
 		m_sheep[i]->setWolf(m_wolf);
 		m_sheep[i]->setSheepBehavior(ESheepBehavior::ESB_Pasture);
 		onWolfNoticed.append(std::bind(&Sheep::sheepShouldRunningAway, m_sheep[i]));
-		onWolfDisappeared.append(std::bind(&Sheep::sheepShouldReturnToPasture, m_sheep[i]));
+		onWolfDisappeared.append(std::bind(&Sheep::sheepShouldPasture, m_sheep[i]));
 	}
 }
 
@@ -138,6 +160,23 @@ void World::generateDogVehicles()
 		onWolfNoticed.append(std::bind(&Dog::dogShouldWolfChase, m_dogs[i]));
 		onWolfDisappeared.append(std::bind(&Dog::dogShouldReturn, m_dogs[i]));
 	}
+}
+
+void World::vehiclesAccounting()
+{
+	// m_allVehicles.resize(m_countOfSheep + m_countOfDogs);
+	std::transform(
+		m_sheep.begin(), m_sheep.end(),
+		std::back_inserter(m_allVehicles),
+		[](const std::shared_ptr<Sheep>& sheepPtr) {
+			return sheepPtr.get();
+		});
+	std::transform(
+		m_dogs.begin(), m_dogs.end(),
+		std::back_inserter(m_allVehicles),
+		[](const std::shared_ptr<Dog>& dogPtr) {
+			return dogPtr.get();
+		});
 }
 
 bool World::wolfInSafeZone() const
@@ -223,7 +262,10 @@ void World::checkCollisions()
 
 		if (CheckCollisionCircles(dogPos, dog->getCollision()->getRadius(), wolfPos, m_wolf->getCollision()->getRadius()))
 		{
-			dog->eatWolf(m_wolf.get());
+			if (!wolfInSafeZone())
+			{
+				dog->eatWolf(m_wolf.get());
+			}
 		}
 	}
 }
@@ -246,8 +288,14 @@ void World::checkAliveVehicle()
 		{
 			m_sheep.erase(it);
 		}
+		auto it2 = std::find(m_allVehicles.begin(), m_allVehicles.end(), sheep.get());
+		if (it2 != m_allVehicles.end())
+		{
+			m_allVehicles.erase(it2);
+		}
 	}
-
+	// std::cout << m_allVehicles.size() << std::endl;
+	
 	// Wolf alive?
 	if (!m_wolf->isAlive())
 	{

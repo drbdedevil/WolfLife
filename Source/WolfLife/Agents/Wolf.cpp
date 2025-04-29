@@ -20,7 +20,7 @@ void Wolf::update(float DeltaSeconds)
 
 void Wolf::draw()
 {
-    DrawLineEx(Vector2(position.x, position.y), GetMousePosition(), 2.f, WHITE);
+    // DrawLineEx(Vector2(position.x, position.y), GetMousePosition(), 2.f, WHITE);
 
     float angle = atan2f(velocity.y, velocity.x);
 
@@ -56,4 +56,13 @@ void Wolf::setVisibility(bool Value)
 bool Wolf::isVisible() const
 {
     return bIsVisible;
+}
+
+void Wolf::tear()
+{
+    --m_health;
+    if (m_health <= 0)
+    {
+        bIsAlive = false;
+    }
 }

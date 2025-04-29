@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "rlgl.h"
 
+#include "Dog.h"
 #include "../Components/Collision.h"
 #include <iostream>
 
@@ -140,6 +141,45 @@ void Vehicle::seekOrArrive(const Vector2& target)
     }
 }
 
+void Vehicle::bound()
+{
+    const float borderThreshold = 5.f; // насколько близко к границе начинаем реагировать
+    const float worldLeft = 107.f;
+    const float worldRight = 1173.f;
+    const float worldTop = 60.f;
+    const float worldBottom = 660.f;
+
+    Vector2f borderSteer(0.f, 0.f);
+
+    if (position.x < worldLeft + borderThreshold)
+    {
+        borderSteer.x += randomFloat(500.f, 1000.0f); // толкаем направо
+        borderSteer.y += randomFloat(-500.f, 500.0f);
+    }
+    else if (position.x > worldRight - borderThreshold)
+    {
+        borderSteer.x += randomFloat(-1000.0f, -500.f); // толкаем налево
+        borderSteer.y += randomFloat(-500.f, 500.0f);
+    }
+
+    if (position.y < worldTop + borderThreshold)
+    {
+        borderSteer.y += randomFloat(500.f, 1000.0f); // толкаем вниз
+        borderSteer.x += randomFloat(-500.0f, 500.f);
+    }
+    else if (position.y > worldBottom - borderThreshold)
+    {
+        borderSteer.y += randomFloat(-1000.0f, -500.f); // толкаем вверх
+        borderSteer.x += randomFloat(-500.0f, 500.f);
+    }
+
+    if (borderSteer.Length() > 0.0f)
+    {
+        borderSteer = borderSteer.Normalized() * 10.f;
+        applyForce(Vector2(borderSteer.x * 0.09f, borderSteer.y * 0.09f));
+    }
+}
+
 void Vehicle::fleeingBound(const Vector2& target)
 {
     fleeing(target);
@@ -183,7 +223,7 @@ void Vehicle::fleeingBound(const Vector2& target)
 
 void Vehicle::fleeingBoundIntelligent(const Vector2& target)
 {
-    const float borderThreshold = 80.f;
+    const float borderThreshold = 10.f;
     const float worldLeft = 107.f;
     const float worldRight = 1173.f;
     const float worldTop = 60.f;
@@ -241,7 +281,42 @@ void Vehicle::fleeingBoundIntelligent(const Vector2& target)
     if (fleeForce.Length() > maxForce)
         fleeForce = fleeForce.Normalized() * maxForce;
 
-    applyForce(Vector2(fleeForce.x, fleeForce.y));
+    applyForce(Vector2(fleeForce.x * 0.05f, fleeForce.y * 0.05f));
+}
+
+void Vehicle::separate(const std::vector<Vehicle*>& vehicles)
+{
+    float desiredSeparation = 25.f;
+
+    Vector2f sumDesired = Vector2f();
+    size_t countNearest = 0;
+    for (const Vehicle* otherVehicle : vehicles)
+    {
+        if (this == otherVehicle)
+        {
+            continue;
+        }
+
+        float distance = (position - otherVehicle->position).Length();
+        if (distance < desiredSeparation)
+        {
+            Vector2f desired = (position - otherVehicle->position).SetMag(1 / distance);
+            sumDesired = sumDesired + desired;
+            ++countNearest;
+        }
+    }
+    if (countNearest > 0)
+    {
+        sumDesired = (sumDesired / countNearest).SetMag(maxSpeed);
+        
+        Vector2f steer = sumDesired - velocity;
+
+        if (steer.Length() > maxForce)
+        {
+            steer = steer.Normalized() * maxForce;
+        }
+        applyForce(Vector2(steer.x * 0.08f, steer.y * 0.08f));
+    }
 }
 
 std::shared_ptr<Collision> Vehicle::getCollision() const

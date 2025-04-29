@@ -14,6 +14,8 @@ Sheep::Sheep(int x, int y) : AIVehicle(x, y)
     m_collision.reset(new Collision(this, 2.f));
     m_eyeshot.reset(new Eyeshot(this, 50.f, 10.f, 100.f));
 
+    velocity = Vector2f(randomFloat(-1, 1), randomFloat(-1, 1));
+
     maxSpeed = 2.5f;
     maxForce = 4.2f;
     // bShouldBound = true;
@@ -36,7 +38,7 @@ void Sheep::draw()
 
     m_eyeshot->draw();
 
-    DrawCircle(0, 0, size, WHITE);
+    DrawCircle(0, 0, size, GRAY);
 
     rlPopMatrix();
 }
@@ -45,7 +47,7 @@ void Sheep::execute()
 {
     if (m_sheepBehavior == ESB_Pasture)
     {
-
+        bound();
     }
     else if (m_sheepBehavior == ESB_ReturnToPasture)
     {
@@ -80,9 +82,15 @@ void Sheep::sheepShouldPasture()
 void Sheep::sheepShouldReturnToPasture()
 {
     m_sheepBehavior = ESB_ReturnToPasture;
+
+    maxSpeed = 2.2f;
+    maxForce = 2.2f;
 }
 
 void Sheep::sheepShouldRunningAway()
 {
     m_sheepBehavior = ESB_RunningAway;
+
+    maxSpeed = 2.5f;
+    maxForce = 4.2f;
 }

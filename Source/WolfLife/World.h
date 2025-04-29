@@ -8,6 +8,7 @@ class Dog;
 class Wolf;
 class Path;
 class Sheep;
+class Vehicle;
 
 class World
 {
@@ -21,15 +22,20 @@ public:
 	void update(float DeltaSeconds);
 	void draw();
 
+	void gameOver();
 	bool isGameOver() const;
 
 	std::shared_ptr<Wolf> getWolf() const;
+
+	int getCountOfSheep() const;
+	int getWolfHealth() const;
 private:
 	eventpp::CallbackList<void()> onWolfNoticed;
 	eventpp::CallbackList<void()> onWolfDisappeared;
 
 	void generateSheepVehicles();
 	void generateDogVehicles();
+	void vehiclesAccounting();
 
 	bool wolfInSafeZone() const;
 
@@ -43,6 +49,7 @@ private:
 	std::shared_ptr<Wolf> m_wolf;
 	std::vector<std::shared_ptr<Sheep>> m_sheep;
 	std::vector<std::shared_ptr<Dog>> m_dogs;
+	std::vector<Vehicle*> m_allVehicles;
 
 	std::shared_ptr<Path> m_dogPath;
 };

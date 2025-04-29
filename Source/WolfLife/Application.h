@@ -1,5 +1,8 @@
 #pragma once
 
+#include "raylib.h"
+#include <string>
+
 class Application
 {
 public:
@@ -13,4 +16,6 @@ public:
 	void run();
 private:
 	Application();
+
+	void DrawTextCentered(const std::string& text, int fontSize, const Color& color, int screenWidth, int screenHeight, int padding = 20);
 };

@@ -18,6 +18,8 @@ public:
 
 	void setVisibility(bool Value);
 	bool isVisible() const;
+
+	void tear();
 private:
 	int8_t m_health;
 	bool bIsVisible = false;

@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include <cmath>
 #include <memory>
+#include <vector>
 
 class Collision;
 
@@ -24,12 +25,20 @@ struct Vector2f
         return { x * scalar, y * scalar };
     }
 
+    Vector2f operator/(float scalar) const {
+        return { x / scalar, y / scalar };
+    }
+
     Vector2f operator-(const Vector2f& other) const {
         return { x - other.x, y - other.y };
     }
 
     Vector2f operator+(const Vector2f& other) const {
         return { x + other.x, y + other.y };
+    }
+
+    Vector2f SetMag(float scalar) const {
+        return Normalized() * scalar;
     }
 };
 
@@ -56,9 +65,14 @@ public:
     // Преследование или прибытие
     void seekOrArrive(const Vector2& target);
 
+    void bound();
+
     // Ограничение по границам и убегание
     void fleeingBound(const Vector2& target);
     void fleeingBoundIntelligent(const Vector2& target);
+
+    // Отталкивание
+    void separate(const std::vector<Vehicle*>& vehicles);
 
     std::shared_ptr<Collision> getCollision() const;
 

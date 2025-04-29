@@ -63,6 +63,7 @@ void Wolf::tear()
     --m_health;
     if (m_health <= 0)
     {
+        m_health = 0;
         bIsAlive = false;
     }
 }

@@ -23,10 +23,10 @@ World::~World()
 
 void World::reset()
 {
-	// onWolfNoticed = eventpp::CallbackList<void()>();
-	// onWolfDisappeared = eventpp::CallbackList<void()>();
+	onWolfNoticed = std::make_unique<eventpp::CallbackList<void()>>();
+	onWolfDisappeared = std::make_unique<eventpp::CallbackList<void()>>();
 
-	m_wolf.reset(new Wolf(50, 50, 12));
+	m_wolf.reset(new Wolf(50, 50, 20));
 
 	generateSheepVehicles();
 	generateDogVehicles();
@@ -57,7 +57,8 @@ void World::update(float DeltaSeconds)
 	m_wolf->update(DeltaSeconds);
 	for (Vehicle* vehicle : m_allVehicles)
 	{
-		vehicle->separate(m_allVehicles);
+		vehicle->flock(m_allVehicles);
+		// vehicle->separate(m_allVehicles);
 		vehicle->update(DeltaSeconds);
 	}
 	/*for (std::shared_ptr<Sheep> sheep : m_sheep)
@@ -74,7 +75,7 @@ void World::draw()
 {
 	ClearBackground({0, 52, 10, 0});
 
-	DrawRectangle(107, 60, 1066, 600, BLACK);
+	DrawRectangle(107, 60, 1066, 600, { 30, 102, 30, 255 });
 	DrawRectangleRoundedLinesEx({107, 60, 1066, 600}, 0.0, 2, 2.f, BROWN);
 
 	// m_dogPath->draw();
@@ -117,7 +118,9 @@ int World::getWolfHealth() const
 
 void World::generateSheepVehicles()
 {
+	m_sheep.clear();
 	m_sheep.resize(m_countOfSheep);
+
 	size_t column = 0;
 	size_t line = 0;
 	for (size_t i = 0; i < m_countOfSheep; ++i)
@@ -131,16 +134,20 @@ void World::generateSheepVehicles()
 		m_sheep[i].reset(new Sheep(175 + 40 * column, 175 + 40 * line++));
 		m_sheep[i]->setWolf(m_wolf);
 		m_sheep[i]->setSheepBehavior(ESheepBehavior::ESB_Pasture);
-		onWolfNoticed.append(std::bind(&Sheep::sheepShouldRunningAway, m_sheep[i]));
-		onWolfDisappeared.append(std::bind(&Sheep::sheepShouldPasture, m_sheep[i]));
+		onWolfNoticed->append(std::bind(&Sheep::sheepShouldRunningAway, m_sheep[i]));
+		onWolfDisappeared->append(std::bind(&Sheep::sheepShouldPasture, m_sheep[i]));
 	}
 }
 
 void World::generateDogVehicles()
 {
+	m_dogs.clear();
+
 	const float x = 150.f;
 	const float y = 100.f;
 	m_dogPath.reset(new Path(20.f/*, Vector2(x, y + 30.f), Vector2(975.f + x, y)*/));
+	m_dogPath->clear();
+
 	m_dogPath->addPoint(Vector2(75.f + x, y));
 	m_dogPath->addPoint(Vector2(900.f + x, y));
 	m_dogPath->addPoint(Vector2(975.f + x, 75.f + y));
@@ -151,19 +158,29 @@ void World::generateDogVehicles()
 	m_dogPath->addPoint(Vector2(x, 75.f + y));
 
 	m_dogs.resize(m_countOfDogs);
+	size_t column = 0;
+	size_t line = 0;
 	for (size_t i = 0; i < m_countOfDogs; ++i)
 	{
-		m_dogs[i].reset(new Dog(x + 975.f * i, y + 500.f * i));
+		if (i % 2 == 0 && i != 0)
+		{
+			line = 0;
+			++column;
+		}
+
+		m_dogs[i].reset(new Dog(x + 975.f * column, y + 500.f * line++));
 		m_dogs[i]->setPath(m_dogPath);
 		m_dogs[i]->setWolf(m_wolf);
 		m_dogs[i]->setDogBehavior(EDogBehavior::EDB_Patrolling);
-		onWolfNoticed.append(std::bind(&Dog::dogShouldWolfChase, m_dogs[i]));
-		onWolfDisappeared.append(std::bind(&Dog::dogShouldReturn, m_dogs[i]));
+		onWolfNoticed->append(std::bind(&Dog::dogShouldWolfChase, m_dogs[i]));
+		onWolfDisappeared->append(std::bind(&Dog::dogShouldReturn, m_dogs[i]));
 	}
 }
 
 void World::vehiclesAccounting()
 {
+	m_allVehicles.clear();
+
 	// m_allVehicles.resize(m_countOfSheep + m_countOfDogs);
 	std::transform(
 		m_sheep.begin(), m_sheep.end(),
@@ -202,7 +219,7 @@ void World::checkVisibility()
 		}
 
 		m_wolf->setVisibility(false);
-		onWolfDisappeared();
+		(*onWolfDisappeared)();
 		return;
 	}
 
@@ -219,7 +236,7 @@ void World::checkVisibility()
 		if (sheep->getEyeshot()->isWolfInEyeshot(wolfPos, m_wolf->getCollision()->getRadius()))
 		{
 			m_wolf->setVisibility(true);
-			onWolfNoticed();
+			(*onWolfNoticed)();
 			return;
 		}
 	}
@@ -233,7 +250,7 @@ void World::checkVisibility()
 		{
 			// std::cout << "I SEE YOU!!!" << std::endl;
 			m_wolf->setVisibility(true);
-			onWolfNoticed();
+			(*onWolfNoticed)();
 			return;
 		}
 	}
@@ -251,7 +268,7 @@ void World::checkCollisions()
 		{
 			m_wolf->eatSheep(sheep.get());
 			m_wolf->setVisibility(true);
-			onWolfNoticed();
+			(*onWolfNoticed)();
 		}
 	}
 

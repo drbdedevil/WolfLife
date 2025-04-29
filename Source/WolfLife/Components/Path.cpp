@@ -54,3 +54,8 @@ void Path::addPoint(const Vector2& vector)
 {
 	m_points.push_back(vector);
 }
+
+void Path::clear()
+{
+	m_points.clear();
+}

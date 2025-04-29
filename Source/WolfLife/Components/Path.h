@@ -17,6 +17,8 @@ public:
 	const std::vector<Vector2>& getPoints() const;
 
 	void addPoint(const Vector2& vector);
+
+	void clear();
 private:
 	std::vector<Vector2> m_points;
 

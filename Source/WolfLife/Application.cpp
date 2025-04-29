@@ -20,7 +20,7 @@ void Application::run()
     InitWindow(1280, 720, "WolfLife");
     SetTargetFPS(60);
 
-    World* world = new World(200, 2);
+    World* world = new World(200, 4);
 
     while (!WindowShouldClose())
     {

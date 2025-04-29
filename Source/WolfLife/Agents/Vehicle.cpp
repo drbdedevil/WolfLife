@@ -286,6 +286,11 @@ void Vehicle::fleeingBoundIntelligent(const Vector2& target)
 
 void Vehicle::separate(const std::vector<Vehicle*>& vehicles)
 {
+    if (dynamic_cast<const Dog*>(this))
+    {
+        return;
+    }
+
     float desiredSeparation = 25.f;
 
     Vector2f sumDesired = Vector2f();
@@ -317,6 +322,97 @@ void Vehicle::separate(const std::vector<Vehicle*>& vehicles)
         }
         applyForce(Vector2(steer.x * 0.08f, steer.y * 0.08f));
     }
+}
+
+void Vehicle::align(const std::vector<Vehicle*>& vehicles)
+{
+    if (dynamic_cast<const Dog*>(this))
+    {
+        return;
+    }
+
+    float neigborDistance = 50.f;
+
+    Vector2f sumDesired = Vector2f();
+    size_t count = 0;
+    for (const Vehicle* otherVehicle : vehicles)
+    {
+        if (this == otherVehicle || dynamic_cast<const Dog*>(otherVehicle))
+        {
+            continue;
+        }
+
+        float distance = (position - otherVehicle->position).Length();
+        if (distance < neigborDistance)
+        {
+            sumDesired = sumDesired + otherVehicle->velocity;
+            ++count;
+        }
+    }
+
+    if (count > 0)
+    {
+        sumDesired = (sumDesired / count).SetMag(maxSpeed);
+
+        Vector2f steer = sumDesired - velocity;
+
+        if (steer.Length() > maxForce)
+        {
+            steer = steer.Normalized() * maxForce;
+        }
+        applyForce(Vector2(steer.x * 0.03f, steer.y * 0.03f));
+    }
+}
+
+void Vehicle::cohesion(const std::vector<Vehicle*>& vehicles)
+{
+    if (dynamic_cast<const Dog*>(this))
+    {
+        return;
+    }
+
+    float neigborDistance = 50.f;
+
+    Vector2f sumDesired = Vector2f();
+    size_t count = 0;
+    for (const Vehicle* otherVehicle : vehicles)
+    {
+        if (this == otherVehicle || dynamic_cast<const Dog*>(otherVehicle))
+        {
+            continue;
+        }
+
+        float distance = (position - otherVehicle->position).Length();
+        if (distance < neigborDistance)
+        {
+            sumDesired = sumDesired + otherVehicle->position;
+            ++count;
+        }
+    }
+
+    if (count > 0)
+    {
+        sumDesired = sumDesired / count;
+        Vector2f desired = { sumDesired.x - position.x, sumDesired.y - position.y };
+
+        desired = desired.Normalized() * maxSpeed;
+
+        Vector2f steer = { desired.x - velocity.x, desired.y - velocity.y };
+
+        if (steer.Length() > maxForce)
+        {
+            steer = steer.Normalized() * maxForce;
+        }
+
+        applyForce({ steer.x * 0.01f, steer.y * 0.01f });
+    }
+}
+
+void Vehicle::flock(const std::vector<Vehicle*>& vehicles)
+{
+    separate(vehicles);
+    align(vehicles);
+    cohesion(vehicles);
 }
 
 std::shared_ptr<Collision> Vehicle::getCollision() const

@@ -65,14 +65,21 @@ public:
     // Преследование или прибытие
     void seekOrArrive(const Vector2& target);
 
+    // Ограничение по границам
     void bound();
-
     // Ограничение по границам и убегание
     void fleeingBound(const Vector2& target);
     void fleeingBoundIntelligent(const Vector2& target);
 
     // Отталкивание
     void separate(const std::vector<Vehicle*>& vehicles);
+    // Выравнивание
+    void align(const std::vector<Vehicle*>& vehicles);
+    // Сполчённость
+    void cohesion(const std::vector<Vehicle*>& vehicles);
+
+    // Стадное поведение
+    void flock(const std::vector<Vehicle*>& vehicles);
 
     std::shared_ptr<Collision> getCollision() const;
 

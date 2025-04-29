@@ -30,8 +30,8 @@ public:
 	int getCountOfSheep() const;
 	int getWolfHealth() const;
 private:
-	eventpp::CallbackList<void()> onWolfNoticed;
-	eventpp::CallbackList<void()> onWolfDisappeared;
+	std::unique_ptr<eventpp::CallbackList<void()>> onWolfNoticed;
+	std::unique_ptr<eventpp::CallbackList<void()>> onWolfDisappeared;
 
 	void generateSheepVehicles();
 	void generateDogVehicles();

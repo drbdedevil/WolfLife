@@ -3,6 +3,9 @@
 #include <algorithm>
 #include "rlgl.h"
 
+#include "../ResourceManager.h"
+#include "../TextureObject.h"
+
 #include "Dog.h"
 #include "../Components/Collision.h"
 #include <iostream>
@@ -38,6 +41,8 @@ void Vehicle::update(float DeltaSeconds)
     position.y += velocity.y;
 
     acceleration = { 0.0f, 0.0f };
+
+    updateTextureFrame(DeltaSeconds);
 }
 
 void Vehicle::applyForce(const Vector2& force)
@@ -270,7 +275,7 @@ void Vehicle::fleeingBoundIntelligent(const Vector2& target)
         if (springForce.Length() > maxForce)
             springForce = springForce.Normalized() * maxForce;
 
-        applyForce(Vector2(springForce.x, springForce.y));
+        applyForce(Vector2(springForce.x * 0.1f, springForce.y * 0.1f));
     }
 
     // Основное убегание от цели
@@ -462,4 +467,33 @@ float Vehicle::Vector2Distance(const Vector2f& a, const Vector2f& b)
 float Vehicle::randomFloat(float min, float max)
 {
     return min + static_cast<float>(rand()) / static_cast<float>(RAND_MAX / (max - min));
+}
+
+void Vehicle::updateTextureFrame(float DeltaSeconds)
+{
+}
+
+void Vehicle::updateTextureFrameInner(float DeltaSeconds, TextureObject* textureObject, float min, float max)
+{
+    m_currentTime += DeltaSeconds;
+
+    float speed = velocity.Length();
+    if (speed < 0.001f)
+    {
+        textureObject->setCurrentFrame(0);
+        return;
+    }
+    m_turnFrameTime = std::clamp(1.0f / (speed + 1.0f), min, max);
+
+    const bool shouldTurnFrame = m_currentTime >= m_turnFrameTime;
+    if (shouldTurnFrame)
+    {
+        const int currentFrame = textureObject->getCurrentFrame();
+        const int totalFrame = textureObject->getTotalFrames();
+        const int nextFrame = (currentFrame + 1) % totalFrame;
+
+        textureObject->setCurrentFrame(nextFrame);
+
+        m_currentTime -= m_turnFrameTime;
+    }
 }

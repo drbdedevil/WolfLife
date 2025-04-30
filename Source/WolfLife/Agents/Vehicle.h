@@ -6,6 +6,7 @@
 #include <vector>
 
 class Collision;
+class TextureObject;
 
 struct Vector2f 
 {
@@ -94,6 +95,12 @@ protected:
     Vector2f getNormalPoint(Vector2f future, Vector2f start, Vector2f end);
     float Vector2Distance(const Vector2f& a, const Vector2f& b);
     float randomFloat(float min, float max);
+
+    virtual void updateTextureFrame(float DeltaSeconds);
+    void updateTextureFrameInner(float DeltaSeconds, TextureObject* textureObject, float min, float max);
+
+    float m_turnFrameTime = 10.f;
+    float m_currentTime = 0.f;
 
     bool bIsAlive = true;
 public:

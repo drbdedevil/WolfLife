@@ -40,6 +40,8 @@ public:
 	void dogShouldPatrol();
 	void dogShouldReturn();
 	void dogShouldWolfChase();
+
+	virtual void updateTextureFrame(float DeltaSeconds) override;
 private:
 	std::weak_ptr<Path> m_path;
 	Wolf* m_wolf;

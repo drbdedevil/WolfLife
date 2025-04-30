@@ -2,6 +2,10 @@
 
 #include "raylib.h"
 #include "rlgl.h"
+#include <algorithm>
+
+#include "../ResourceManager.h"
+#include "../TextureObject.h"
 
 #include "Wolf.h"
 #include "../Components/Path.h"
@@ -10,6 +14,8 @@
 
 Dog::Dog(int x, int y) : AIVehicle(x, y)
 {
+    size = 2.f;
+
     m_startPos = Vector2(x, y);
 
     m_collision.reset(new Collision(this, 10.f));
@@ -33,9 +39,43 @@ void Dog::update(float DeltaSeconds)
 
 void Dog::draw()
 {
-    // m_path->draw();
+    float angle = atan2f(velocity.y, velocity.x) * RAD2DEG + 90.0f;
 
-    float angle = atan2f(velocity.y, velocity.x);
+    if (ResourceManager::getInstance().getDogTexture()->isLoad())
+    {
+        TextureObject* textureObject = ResourceManager::getInstance().getDogTexture();
+        Texture2D texture = *textureObject->getTexture();
+        int frameWidth = textureObject->getFrameWidth();
+        int frameHeight = textureObject->getFrameHeight();
+
+        Rectangle sourceRec = {
+            frameWidth * textureObject->getCurrentFrame(),
+            0,
+            (float)frameWidth,
+            (float)frameHeight
+        };
+
+        // Указываем размер и позицию в центре объекта
+        Rectangle destRec = {
+            position.x,
+            position.y,
+            frameWidth * size,
+            frameHeight * size
+        };
+
+        // Центр вращения — центр текстуры
+        Vector2 origin = {
+            frameWidth * size / 2.0f,
+            frameHeight * size / 2.0f
+        };
+
+        // Теперь нарисуем
+        DrawTexturePro(texture, sourceRec, destRec, origin, angle, WHITE);
+
+        return;
+    }
+
+    angle = atan2f(velocity.y, velocity.x);
 
     rlPushMatrix();
     rlTranslatef(position.x, position.y, 0.0f);
@@ -189,4 +229,9 @@ void Dog::dogShouldWolfChase()
 
     maxSpeed = 8.8f;
     maxForce = 0.5f;
+}
+
+void Dog::updateTextureFrame(float DeltaSeconds)
+{
+    updateTextureFrameInner(DeltaSeconds, ResourceManager::getInstance().getDogTexture(), 0.f, 0.35f);
 }

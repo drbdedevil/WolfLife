@@ -28,6 +28,8 @@ public:
 	void sheepShouldPasture();
 	void sheepShouldReturnToPasture();
 	void sheepShouldRunningAway();
+
+	virtual void updateTextureFrame(float DeltaSeconds) override;
 private:
 	Wolf* m_wolf;
 	ESheepBehavior m_sheepBehavior;

@@ -20,6 +20,8 @@ public:
 	bool isVisible() const;
 
 	void tear();
+
+	virtual void updateTextureFrame(float DeltaSeconds) override;
 private:
 	int8_t m_health;
 	bool bIsVisible = false;

@@ -1,12 +1,13 @@
 #include "Application.h"
 
+#include "ResourceManager.h"
 #include "World.h"
 #include "Agents/Vehicle.h"
 #include "Agents/Wolf.h"
 
 Application::Application()
 {
-
+    
 }
 
 Application::~Application()
@@ -19,6 +20,8 @@ void Application::run()
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(1280, 720, "WolfLife");
     SetTargetFPS(60);
+
+    ResourceManager::getInstance().loadTextures();
 
     World* world = new World(200, 4);
 
@@ -37,10 +40,6 @@ void Application::run()
             world->update(GetFrameTime());
 
             world->draw();
-
-            // handle input
-            // Vector2 mousePos = GetMousePosition();
-            // DrawCircle(mousePos.x, mousePos.y, 10, RED);
 
             DrawFPS(10, 10);
             DrawText(TextFormat("Health Points: %i", world->getWolfHealth()), 1280 - 200, 10, 24, WHITE);
@@ -64,6 +63,7 @@ void Application::run()
     }
 
     delete world;
+    ResourceManager::getInstance().unloadTextures();
     CloseWindow();
 }
 
